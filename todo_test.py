@@ -9,6 +9,17 @@ class Test_TodoList(TestCase):
         self.assertEqual(new.next_id, 0)
         self.assertEqual(new.tasks, list())
 
+    def test_TodoList_adds_single_message(self):
+        """A new message gets added to the list of tasks."""
+        todolist = TodoList()
+        ret_string = "1 New message"
+        self.assertEqual(todolist.add("New message"), ret_string)
+
+    def test_TodoList_completes_message(self):
+        todolist = TodoList()
+        ret_string = "Completed 1 New message"
+        self.assertEqual(todolist.do(1), ret_string)
+
 
 class Test_Task(TestCase):
     def test_new_task_must_have_positive_ID(self):
@@ -23,3 +34,10 @@ class Test_Task(TestCase):
         """A new task is uncompleted."""
         new = Task("New message", 1)
         self.assertFalse(new.completed)
+
+    def test_task_can_convert_self_to_dictionary(self):
+        """A task can return itself as a dictionary."""
+        new = Task("New message", 1)
+        dict_str = new.to_dict()
+        compare = {"text": "New message", "id": 1, "completed": False}
+        self.assertEqual(dict_str, compare)
