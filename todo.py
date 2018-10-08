@@ -9,6 +9,10 @@ class TodoList:
         or from scratch if no file is found."""
         self.tasks, self.next_id = self.load_tasks()
 
+    def __len__(self):
+        """Return the number of current entries."""
+        return len(self.tasks)
+
     def load_tasks(self):
         tasks = list()
         next_id = 1
