@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main as test_main
 from todo import Task, TodoList
 
 
@@ -19,6 +19,12 @@ class Test_TodoList(TestCase):
         todolist = TodoList()
         ret_string = "Completed 1 New message"
         self.assertEqual(todolist.do(1), ret_string)
+
+    def test_TodoList_has_correct_length(self):
+        """Make sure __len__ is implemented."""
+        todolist = TodoList()
+        todolist.add("New message")
+        self.assertEqual(len(todolist), 1)
 
 
 class Test_Task(TestCase):
@@ -41,3 +47,7 @@ class Test_Task(TestCase):
         dict_str = new.to_dict()
         compare = {"text": "New message", "id": 1, "completed": False}
         self.assertEqual(dict_str, compare)
+
+
+if __name__ == '__main__':
+    test_main()
