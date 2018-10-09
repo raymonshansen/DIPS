@@ -1,6 +1,10 @@
 # To-DO list
 
 A simple to-DO list for DIPS summer Internships Summer 2019
+Run the app with:
+```
+python3 todo_app.py
+```
 
 ## Getting Started
 
@@ -37,11 +41,4 @@ From DIPS folder, run:
 
 ```
 flake8 .
-```
-
-## Deployment
-
-Run the app with:
-```
-python3 todo_app.py
 ```
