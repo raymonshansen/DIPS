@@ -38,11 +38,11 @@ class TodoList:
         self.persister = persister
         self.tasks, self.next_id = self.persister.load_tasks()
 
-    def __len__(self) -> int:
+    def __len__(self):
         """Return the number of current entries."""
         return len(self.tasks)
 
-    def add(self, message: str) -> str:
+    def add(self, message: str):
         """Add the message to the list of tasks.
         Returns the string to be printed in the console."""
         ret_string = f"#{self.next_id} {message}"
@@ -75,9 +75,9 @@ class TodoList:
 
     def print_all_tasks(self, _):
         """Return the string of all current entries."""
-        ret_string = "\n".join(f"#{task.id} {task.text}" for task in self.tasks)
-        if ret_string:
-            return ret_string
+        ret_str = "\n".join(f"#{task.id} {task.text}" for task in self.tasks)
+        if ret_str:
+            return ret_str
         return "No entries yet."
 
 
@@ -99,5 +99,7 @@ class Task:
 
     def to_dict(self):
         """Return self as a dictionary."""
-        dictionary = {'text': self.text, 'id': self.id, 'completed': self.completed}
+        dictionary = {'text': self.text,
+                      'id': self.id,
+                      'completed': self.completed}
         return dictionary
