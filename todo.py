@@ -1,23 +1,17 @@
 from json import load, dump
 
 
-class TodoList:
-    """Represents all current task. Writes to disk or reads them if
-    old ones are present."""
-    def __init__(self):
-        """Construct the Todo-list, either from an existing file,
-        or from scratch if no file is found."""
-        self.tasks, self.next_id = self.load_tasks()
-
-    def __len__(self):
-        """Return the number of current entries."""
-        return len(self.tasks)
+class Persister:
+    """Load and save to disk."""
+    def __init__(self, filename):
+        self.filename = filename
 
     def load_tasks(self):
+        """Load a tasklist from disk."""
         tasks = list()
         next_id = 1
         try:
-            with open('tasks', 'r') as storage:
+            with open(self.filename, 'r') as storage:
                 temp_list = load(storage)
                 for d in temp_list:
                     new = Task(d['text'], d['id'])
@@ -29,31 +23,62 @@ class TodoList:
 
         return tasks, next_id
 
-    def persist_to_disk(self) -> None:
-        """Write to fil on disk."""
+    def save_tasks(self, tasks):
+        """Save current state to disk."""
         with open('tasks', 'w') as outfile:
-            dump([t.to_dict() for t in self.tasks], outfile)
+            dump([t.to_dict() for t in tasks], outfile)
 
-    def add(self, message: str):
+
+class TodoList:
+    """Represents all current task. Writes to disk or reads them if
+    old ones are present."""
+    def __init__(self, persister):
+        """Construct the Todo-list, either from an existing file,
+        or from scratch if no file is found."""
+        self.persister = persister
+        self.tasks, self.next_id = self.persister.load_tasks()
+
+    def __len__(self) -> int:
+        """Return the number of current entries."""
+        return len(self.tasks)
+
+    def add(self, message: str) -> str:
         """Add the message to the list of tasks.
         Returns the string to be printed in the console."""
-        ret_string = f"{self.next_id} {message}"
+        ret_string = f"#{self.next_id} {message}"
         self.tasks.append(Task(message, self.next_id))
         self.next_id += 1
-        self.persist_to_disk()
+        self.persister.save_tasks(self.tasks)
         return ret_string
 
-    def do(self, id_num: int):
+    def remove_task(self, task):
+        """Remove the given task from tasks."""
+        self.tasks.remove(task)
+
+    def do(self, id_num: str):
         """Mark the task with the corresponding id_num
-        as completed. Return the string to be printed in the console."""
+        as completed. Try to convert to int, theow error if not.
+        Return the string to be printed in the console."""
+        if not self.tasks:
+            return "No entries to do yet."
         ret_string = f"Error: ID {id_num} not found."
-        for task in self.tasks:
-            if task.id == id_num:
-                ret_string = f"Completed {task.id} {task.text}"
+        try:
+            num = int(id_num)
+            for task in self.tasks:
+                if task.id == num:
+                    ret_string = f"Completed #{task.id} {task.text}"
+                    self.remove_task(task)
+                    self.persister.save_tasks(self.tasks)
+        except ValueError:
+            ret_string = "Error: ID must be number."
         return ret_string
 
-    def print(self):
-        ...
+    def print_all_tasks(self, _):
+        """Return the string of all current entries."""
+        ret_string = "\n".join(f"#{task.id} {task.text}" for task in self.tasks)
+        if ret_string:
+            return ret_string
+        return "No entries yet."
 
 
 class Task:
