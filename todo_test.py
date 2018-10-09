@@ -2,29 +2,92 @@ from unittest import TestCase, main as test_main
 from todo import Task, TodoList
 
 
+class MockPersister:
+    def __init__(self, tasks):
+        self.save_count = 0
+        self.load_count = 0
+        self.tasks = tasks
+
+    def load_tasks(self):
+        self.load_count += 1
+        if not self.tasks:
+            return list(), 1
+        return self.tasks, self.tasks[:-1].id + 1
+
+    def save_tasks(self, tasks):
+        self.save_count += 1
+        self.tasks = tasks.copy()
+
+
 class Test_TodoList(TestCase):
-    def test_first_list_is_empty(self):
-        """A new TodoList should not have any tasks."""
-        new = TodoList()
-        self.assertEqual(new.next_id, 0)
+    def setUp(self):
+        self.persister = MockPersister(list())
+
+    def test_first_TodoList_is_empty(self):
+        """A blank TodoList should be empty."""
+        new = TodoList(self.persister)
+        self.assertEqual(new.next_id, 1)
         self.assertEqual(new.tasks, list())
+        self.assertEqual(self.persister.load_count, 1)
 
     def test_TodoList_adds_single_message(self):
         """A new message gets added to the list of tasks."""
-        todolist = TodoList()
-        ret_string = "1 New message"
+        todolist = TodoList(self.persister)
+        ret_string = "#1 New message"
         self.assertEqual(todolist.add("New message"), ret_string)
+        actual_task = self.persister.tasks[0]
+        self.assertEqual(actual_task.text, "New message")
+        self.assertEqual(actual_task.id, 1)
 
-    def test_TodoList_completes_message(self):
-        todolist = TodoList()
-        ret_string = "Completed 1 New message"
-        self.assertEqual(todolist.do(1), ret_string)
+    def test_TodoList_completes_a_message(self):
+        """A completed message gets removed."""
+        todolist = TodoList(self.persister)
+        todolist.add("New message")
+        ret_string = "Completed #1 New message"
+        self.assertEqual(todolist.do("1"), ret_string)
+        self.assertEqual(0, len(self.persister.tasks))
+
+    def test_TodoList_add_then_complete(self):
+        todolist = TodoList(self.persister)
+        after_add = "#1 New message"
+        self.assertEqual(todolist.add("New message"), after_add)
+        actual_task = self.persister.tasks[0]
+        self.assertEqual(actual_task.text, "New message")
+        self.assertEqual(actual_task.id, 1)
+        after_do = "Completed #1 New message"
+        self.assertEqual(1, len(self.persister.tasks))
+        self.assertEqual(todolist.do("1"), after_do)
+        self.assertEqual(0, len(self.persister.tasks))
+
+    def test_TodoList_notifies_if_id_does_not_exist(self):
+        todolist = TodoList(self.persister)
+        todolist.add("New message")
+        after_invalid = "Error: ID 404 not found."
+        self.assertEqual(todolist.do("404"), after_invalid)
+
+    def test_TodoList_notifies_if_id_is_not_a_number(self):
+        todolist = TodoList(self.persister)
+        todolist.add("New message")
+        after_invalid = "Error: ID must be number."
+        self.assertEqual(todolist.do("fem"), after_invalid)
+
+    def test_TodoList_notifies_that_empty_list_cannot_be_completed(self):
+        todolist = TodoList(self.persister)
+        after_do_empty = "No entries to do yet."
+        self.assertEqual(todolist.do("1"), after_do_empty)
+
+    def test_TodoList_cannot_print_empty_list(self):
+        todolist = TodoList(self.persister)
+        after_print = "No entries yet."
+        self.assertEqual(todolist.print_all_tasks([]), after_print)
 
     def test_TodoList_has_correct_length(self):
         """Make sure __len__ is implemented."""
-        todolist = TodoList()
-        todolist.add("New message")
-        self.assertEqual(len(todolist), 1)
+        todolist = TodoList(self.persister)
+        todolist.add("One")
+        todolist.add("Two")
+        todolist.add("Three")
+        self.assertEqual(len(todolist), 3)
 
 
 class Test_Task(TestCase):
