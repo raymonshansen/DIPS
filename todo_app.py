@@ -3,8 +3,8 @@ from todo import TodoList, Persister
 
 class Shell:
     """Runs the shell."""
-    def __init__(self):
-        self.persister = Persister('tasks')
+    def __init__(self, persister):
+        self.persister = persister
         self.todolist = TodoList(self.persister)
         self.commands = {'add': self.todolist.add,
                          'do': self.todolist.do,
@@ -34,13 +34,13 @@ You currently have {len(self.todolist)} entries."""
 
     def run_command(self, input_str: str):
         cmd, *args = input_str.split()
-        ret_string = self.commands.get(cmd, self.print_default_error)(" ".join(args))
-        print(ret_string)
+        ret = self.commands.get(cmd, self.print_default_error)(" ".join(args))
+        print(ret)
 
     def print_default_error(self, *args):
         return "Error, unknown command."
 
 
 if __name__ == "__main__":
-    shell = Shell()
+    shell = Shell(Persister('tasks.json'))
     shell.run()
