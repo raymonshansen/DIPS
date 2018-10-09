@@ -25,7 +25,7 @@ class Persister:
 
     def save_tasks(self, tasks):
         """Save current state to disk."""
-        with open('tasks', 'w') as outfile:
+        with open(self.filename, 'w') as outfile:
             dump([t.to_dict() for t in tasks], outfile)
 
 
